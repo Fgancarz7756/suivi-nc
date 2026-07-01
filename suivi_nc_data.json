@@ -665,18 +665,19 @@
       "AUTO CONCEPT AUDI ROUEN"
     ],
     "Responsable commercial": [
-      "Pallencher Vincent",
-      "Roussel Christian",
+      "Pallancher Vincent",
       "Le Boulba Jeremy",
       "Payen Fabienne",
-      "Souvigne Johan",
+      "Souvigne Johann",
       "Leblond Philipp"
     ],
     "Type de NC": [
       "Difference kilometrique",
       "Mecanique",
       "Esthetique",
-      "Version / Finition"
+      "Version / Finition",
+      "Difference motorisation",
+      "Difference boîte de vitesses"
     ],
     "Statut NC": [
       "En cours traitement - Pole technique",
