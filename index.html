@@ -9,17 +9,6 @@
 * { box-sizing:border-box; }
 body { margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--bg); color:#222; }
 header { background:#222; color:white; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
-.header-left { display:flex; align-items:center; gap:16px; }<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suivi des non-conformités véhicules</title>
-<style>
-:root { --orange:#f28c00; --dark:#222; --light:#fff7ec; --border:#ddd; --muted:#666; --bg:#f6f7f9; }
-* { box-sizing:border-box; }
-body { margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--bg); color:#222; }
-header { background:#222; color:white; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
 .header-left { display:flex; align-items:center; gap:16px; }
 .logo { height:48px; width:auto; background:white; padding:6px 8px; border-radius:8px; }
 header h1 { margin:0; font-size:22px; }
@@ -85,8 +74,8 @@ td textarea { min-height:36px; }
     <div class="field"><label>Recherche dossier / immatriculation</label><input id="filterText" oninput="renderTreatment()" placeholder="Ex : AB-123-CD"></div>
     <button class="primary" onclick="addRow()">+ Ajouter une NC</button>
     <button class="secondary" onclick="exportCsv()">Exporter CSV</button>
-    <button class="secondary" onclick="saveToGithub()">☁️ Sauvegarder sur GitHub</button>
-    <button class="secondary" onclick="loadFromGithub()">🔄 Recharger depuis GitHub</button>
+    <button class="secondary" onclick="saveToGithub()">&#9729;&#65039; Sauvegarder</button>
+    <button class="secondary" onclick="loadFromGithub()">&#128260; Recharger</button>
   </div>
   <div class="table-wrap"><table id="treatmentTable"></table></div>
  </div>
@@ -106,58 +95,6 @@ const euroCols = ['Coûts évalués- Pôle technique','Décote évaluée - Estim
 const dateCols = ['Date NC','Date début Pôle technique','Date début Estimation','Date début Commerce'];
 const longCols = ['Description de la NC','Commentaire / action à mener'];
 let data = JSON.parse(JSON.stringify(INITIAL_DATA));
-const GITHUB_USER = 'Fgancarz7756';
-const GITHUB_REPO = 'suivi-nc';
-const GITHUB_FILE = 'suivi_nc_data.json';
-const GITHUB_API  = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
-let GITHUB_TOKEN  = localStorage.getItem('gh_token') || '';
-let githubSha     = null;
-
-async function getToken() {
-  if (GITHUB_TOKEN) return GITHUB_TOKEN;
-  const t = prompt('Entrez votre token GitHub (ghp_...) :');
-  if (t) { GITHUB_TOKEN = t.trim(); localStorage.setItem('gh_token', GITHUB_TOKEN); }
-  return GITHUB_TOKEN;
-}
-
-async function loadFromGithub() {
-  try {
-    const res = await fetch(GITHUB_API, { headers: { 'Authorization': 'token ' + GITHUB_TOKEN } });
-    if (res.status === 404) return; // fichier pas encore créé
-    if (!res.ok) return;
-    const json = await res.json();
-    githubSha = json.sha;
-    const decoded = JSON.parse(atob(json.content.replace(/\n/g, '')));
-    data = decoded;
-    renderAll();
-    showStatus('✅ Données chargées depuis GitHub');
-  } catch(e) { showStatus('⚠️ Impossible de charger depuis GitHub'); }
-}
-
-async function saveToGithub() {
-  const token = await getToken();
-  if (!token) return;
-  showStatus('⏳ Sauvegarde en cours...');
-  try {
-    const body = { message: 'Mise à jour suivi NC', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), };
-    if (githubSha) body.sha = githubSha;
-    const res = await fetch(GITHUB_API, { method: 'PUT', headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
-    const json = await res.json();
-    githubSha = json.content.sha;
-    showStatus('✅ Sauvegardé sur GitHub');
-  } catch(e) { showStatus('❌ Erreur : ' + e.message); }
-}
-
-function showStatus(msg) {
-  let el = document.getElementById('ghStatus');
-  if (!el) { el = document.createElement('div'); el.id = 'ghStatus'; el.style.cssText = 'position:fixed;bottom:18px;right:24px;background:#222;color:white;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;'; document.body.appendChild(el); }
-  el.textContent = msg;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.textContent = '', 4000);
-}
-
-function saveData() { renderAll(); saveToGithub(); }
 function showPage(id, btn) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAll(); }
 function todayISO() { return new Date().toISOString().slice(0,10); }
 function parseDate(v) { if(!v) return null; const d=new Date(v); return isNaN(d) ? null : d; }
@@ -233,7 +170,7 @@ function populateFilters() {
   fs.innerHTML='<option value="">Tous</option>'+(data.sources['Statut NC']||[]).map(v=>`<option ${v===curS?'selected':''}>${escapeHtml(v)}</option>`).join('');
   if(fal) fal.innerHTML=(data.sources['Apporteurs']||[]).map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
 }
-function updateCell(i,col,val) { data.rows[i][col]=val; renderDashboard(); }
+function updateCell(i,col,val) { data.rows[i][col]=val; saveToGithub(); renderDashboard(); }
 function addRow() { const r={}; data.headers.forEach(h=>r[h]=''); r['Date NC']=todayISO(); r['Statut NC']=(data.sources['Statut NC']||[''])[0]||''; data.rows.unshift(r); saveData(); }
 function deleteRow(i) { if(confirm('Supprimer cette ligne ?')) { data.rows.splice(i,1); saveData(); } }
 function renderSources() {
@@ -242,138 +179,43 @@ function renderSources() {
 }
 function saveSources() { ['Apporteurs','Responsable commercial','Type de NC','Statut NC','Statut négociation'].forEach(k=>{ const id='src_'+k.replace(/[^a-zA-Z0-9]/g,'_'); data.sources[k]=document.getElementById(id).value.split('\n').map(x=>x.trim()).filter(Boolean); }); saveData(); }
 function resetData() { if(confirm('Réinitialiser toutes les données ?')) { data=JSON.parse(JSON.stringify(INITIAL_DATA)); renderAll(); } }
-function exportJson() {
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8;'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='suivi_nc_sauvegarde.json'; a.click();
-}
-function importJson() {
-  const input=document.createElement('input'); input.type='file'; input.accept='.json';
-  input.onchange=e=>{
-    const file=e.target.files[0]; if(!file) return;
-    const reader=new FileReader();
-    reader.onload=ev=>{ try { data=JSON.parse(ev.target.result); renderAll(); alert('Données importées avec succès.'); } catch(err) { alert('Fichier JSON invalide.'); } };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-function exportCsv() {
- const rows=[data.headers].concat(data.rows.map(r=>data.headers.map(h=>r[h]||'')));
- const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
- const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='suivi_nc.csv'; a.click();
-}
-function renderAll() { renderDashboard(); renderTreatment(); renderSources(); }
-renderAll();
-// Chargement initial depuis GitHub
-(async () => {
-  const token = await getToken();
-  if (token) await loadFromGithub();
-})();
-</script>
-</body>
-</html>
-.logo { height:48px; width:auto; background:white; padding:6px 8px; border-radius:8px; }
-header h1 { margin:0; font-size:22px; }
-header span { color:var(--orange); font-weight:bold; }
-nav { background:white; border-bottom:1px solid var(--border); padding:0 24px; display:flex; gap:8px; }
-nav button { border:0; background:white; padding:14px 18px; cursor:pointer; font-weight:bold; border-bottom:3px solid transparent; }
-nav button.active { border-bottom-color:var(--orange); color:#000; }
-main { padding:24px; max-width:1600px; margin:auto; }
-.page { display:none; } .page.active { display:block; }
-.card { background:white; border:1px solid var(--border); border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,.04); margin-bottom:18px; }
-.grid { display:grid; grid-template-columns:repeat(4,minmax(180px,1fr)); gap:16px; }
-.kpi { border-left:5px solid var(--orange); }
-.kpi .num { font-size:32px; font-weight:bold; margin:8px 0; }
-.kpi .label { color:var(--muted); font-size:13px; }
-.kpi .ageing { font-size:13px; color:#333; }
-.toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin-bottom:14px; }
-.field { display:flex; flex-direction:column; gap:5px; min-width:190px; }
-label { font-size:12px; font-weight:bold; color:#444; }
-input, select, textarea { border:1px solid #cfcfcf; border-radius:8px; padding:9px; font-family:inherit; background:white; }
-button.primary { background:var(--orange); color:white; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:bold; }
-button.secondary { background:#333; color:white; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; }
-button.danger { background:#b00020; color:white; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; }
-table { width:100%; border-collapse:collapse; background:white; }
-th, td { border:1px solid var(--border); padding:8px; vertical-align:top; font-size:13px; }
-th { background:#2b2b2b; color:white; position:sticky; top:0; z-index:1; }
-td input, td select, td textarea { width:100%; min-width:120px; padding:6px; border-radius:6px; }
-td input[list] { min-width:260px; }
-td textarea { min-height:36px; }
-.table-wrap { overflow:auto; max-height:68vh; border:1px solid var(--border); border-radius:10px; }
-.note { background:var(--light); border-left:4px solid var(--orange); padding:12px; margin:12px 0; }
-.source-box { display:grid; grid-template-columns:repeat(2,minmax(250px,1fr)); gap:16px; }
-.source-box textarea { width:100%; min-height:220px; }
-.small { color:var(--muted); font-size:12px; }
-.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-@media (max-width:900px) { .grid,.stats-grid,.source-box { grid-template-columns:1fr; } header { flex-direction:column; align-items:flex-start; } }
-</style>
-</head>
-<body>
-<header><div class="header-left"><img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHQAAABHCAYAAADWdGMkAAAAxnpUWHRSYXcgcHJvZmlsZSB0eXBlIGV4aWYAAHjabVDBDcMwCPx7io6AgWAYx2lSqRt0/GJDqiTqST5jDh2Ysn/er/IYwMqFl6ZiIuBgY8PugUKgT67Akycap1av+cItBfQU+U3xVMn6I19/BnF1j5aTkT5TWK+CZWfUm1E2ojERerClkaURYQg1DXp8C8S0nb+w7nCFximD1OYswyy025ubb29bvA8h7lQJnIkkamgcLtQ9UGck8cJK7HEwkOUkvpB/ezpQvgPkWURAD5ISAAABhGlDQ1BJQ0MgcHJvZmlsZQAAeJx9kT1Iw0AcxV9TpVUqDnaQ4pChOtlFRRxLFYtgobQVWnUwufQLmjQkKS6OgmvBwY/FqoOLs64OroIg+AHi7OCk6CIl/i8ptIjx4Lgf7+497t4BQqvGVLMvDqiaZWSSCTFfWBUDrwgighAGEJOYqaeyizl4jq97+Ph6F+NZ3uf+HENK0WSATySOM92wiDeIZzctnfM+cZhVJIX4nHjSoAsSP3JddvmNc9lhgWeGjVxmnjhMLJZ7WO5hVjFU4hniqKJqlC/kXVY4b3FWaw3WuSd/YaiorWS5TnMMSSwhhTREyGigihosxGjVSDGRof2Ehz/i+NPkkslVBSPHAupQITl+8D/43a1Zmp5yk0IJoP/Ftj/GgcAu0G7a9vexbbdPAP8zcKV1/fUWMPdJerOrRY+A4W3g4rqryXvA5Q4w+qRLhuRIfppCqQS8n9E3FYCRW2Bwze2ts4/TByBHXS3fAAeHwESZstc93h3s7e3fM53+fgC3rnLCtEEC4gAADXZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+Cjx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDQuNC4wLUV4aXYyIj4KIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIgogICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgIHhtbG5zOkdJTVA9Imh0dHA6Ly93d3cuZ2ltcC5vcmcveG1wLyIKICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICB4bXBNTTpEb2N1bWVudElEPSJnaW1wOmRvY2lkOmdpbXA6ZmQ1YTEwNTgtNDk2ZC00MjIwLWE2ZTYtMzZjYzMzNWFkNjA0IgogICB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjJkNTNiOWI0LTI2YzMtNDBmOS1iNWExLWQwZTc4Y2MzZjFmOSIKICAgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjc0ZjdlMzIzLTRmNTYtNDg4YS1hM2JmLTMyZDQyNGFlMjE5YiIKICAgZGM6Rm9ybWF0PSJpbWFnZS9wbmciCiAgIEdJTVA6QVBJPSIyLjAiCiAgIEdJTVA6UGxhdGZvcm09IldpbmRvd3MiCiAgIEdJTVA6VGltZVN0YW1wPSIxNzI0Njc0NDUxNjg0NzU0IgogICBHSU1QOlZlcnNpb249IjIuMTAuMzYiCiAgIHRpZmY6T3JpZW50YXRpb249IjEiCiAgIHhtcDpDcmVhdG9yVG9vbD0iR0lNUCAyLjEwIgogICB4bXA6TWV0YWRhdGFEYXRlPSIyMDI0OjA4OjI2VDE0OjE0OjA5KzAyOjAwIgogICB4bXA6TW9kaWZ5RGF0ZT0iMjAyNDowODoyNlQxNDoxNDowOSswMjowMCI+CiAgIDx4bXBNTTpIaXN0b3J5PgogICAgPHJkZjpTZXE+CiAgICAgPHJkZjpsaQogICAgICBzdEV2dDphY3Rpb249InNhdmVkIgogICAgICBzdEV2dDpjaGFuZ2VkPSIvIgogICAgICBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjA5NThhN2Q4LTg0YzAtNDllZS05OGVkLTUwNjczM2Y3MjJlMyIKICAgICAgc3RFdnQ6c29mdHdhcmVBZ2VudD0iR2ltcCAyLjEwIChXaW5kb3dzKSIKICAgICAgc3RFdnQ6d2hlbj0iMjAyNC0wOC0yNlQxNDoxNDoxMSIvPgogICAgPC9yZGY6U2VxPgogICA8L3htcE1NOkhpc3Rvcnk+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgCjw/eHBhY2tldCBlbmQ9InciPz6Pm9/3AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH6AgaDA4LOVzCFwAADZFJREFUeNrtnHmQFNUdxz89x14sgpyD1xAVD1Aw2uuRBGjk0BZFHDXxKC00xpikjGVSFWNpUrHUREsTo4WJJkrFs8RjPEl7ILQYPJL2AI2CIjCiMCi7wu6y7OzOTOeP9yaMm53dnj52h9R8q6Zmj36/fv2+/fu93+/3fu9BFVVUUUUVVVThBkrxL+lEfAQwEQiXISMLvBtLpnb61al0Ij4RGO2iaaZO6XpzVvNRdcBxgO2w3VdAB7DNMo3t/xeEphPxw4ClciCVMmTYwDZgZiyZWuORyChwB3AhEHUh4o2x0ZTWtFWfDzwG5Mp4KXPyezPwEnAvsBFot0zD3lMIDcmBrAWeA/YFauRgOv3UAPtIIrzifOAyoKHMPhQ+L9/cMsMGfiKfzWm7eqARGC4t1BXAauDfwD2qpk/YowgFDgJiHmXNTifiQz3K+LGHtjlg+ePd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" alt="VPauto"><h1>Suivi des <span>non-conformités véhicules</span></h1></div><div class="small">Pôle technique · Estimation · Commerce</div></header>
-<nav>
-<button class="active" onclick="showPage('accueil', this)">Accueil / Dashboard</button>
-<button onclick="showPage('traitement', this)">Traitement</button>
-<button onclick="showPage('sources', this)">Sources</button>
-</nav>
-<main>
-<section id="accueil" class="page active">
- <div class="card">
-  <h2>Dashboard de pilotage</h2>
-  <div class="note">Les indicateurs sont calculés à partir des lignes saisies dans l’onglet Traitement. L’ageing correspond au nombre moyen de jours depuis la date de début de l’étape concernée, à défaut depuis la date NC.</div>
-  <div class="grid" id="kpiGrid"></div>
- </div>
- <div class="stats-grid">
-  <div class="card"><h3>Statistiques par apporteur</h3><div class="table-wrap"><table id="statsApporteur"></table></div></div>
-  <div class="card"><h3>Répartition par type de NC</h3><div class="table-wrap"><table id="statsType"></table></div></div>
- </div>
-</section>
-<section id="traitement" class="page">
- <div class="card">
-  <h2>Tableau de traitement</h2>
-  <div class="toolbar">
-    <div class="field"><label>Filtrer par statut NC</label><select id="filterStatus" onchange="renderTreatment()"><option value="">Tous</option></select></div>
-    <div class="field"><label>Filtrer par apporteur</label><input id="filterApporteur" list="filterApporteurList" oninput="renderTreatment()" placeholder="Tous / saisir un apporteur"><datalist id="filterApporteurList"></datalist></div>
-    <div class="field"><label>Recherche dossier / immatriculation</label><input id="filterText" oninput="renderTreatment()" placeholder="Ex : AB-123-CD"></div>
-    <button class="primary" onclick="addRow()">+ Ajouter une NC</button>
-    <button class="secondary" onclick="exportCsv()">Exporter CSV</button>
-    <button class="secondary" onclick="saveToGithub()">☁️ Sauvegarder sur GitHub</button>
-    <button class="secondary" onclick="loadFromGithub()">🔄 Recharger depuis GitHub</button>
-  </div>
-  <div class="table-wrap"><table id="treatmentTable"></table></div>
- </div>
-</section>
-<section id="sources" class="page">
- <div class="card">
-  <h2>Sources de données</h2>
-  <div class="note">Mettez à jour les listes ci-dessous si besoin. Une valeur par ligne. Cliquez sur “Enregistrer les sources” pour alimenter les listes déroulantes du tableau de traitement.</div>
-  <div class="source-box" id="sourceEditors"></div>
-  <p><button class="primary" onclick="saveSources()">Enregistrer les sources</button> <button class="secondary" onclick="resetData()">Réinitialiser depuis le fichier Excel d’origine</button></p>
- </div>
-</section>
-</main>
-<script>
-const INITIAL_DATA = {"headers": ["Date NC", "Numéro de dossier", "Immatriculation", "Apporteur", "Responsable commercial", "Type de NC", "Description de la NC", "Coûts évalués- Pôle technique", "Décote évaluée - Estimation", "Réserve initiale", "Nouvelle réserve proposée après décote", "Reserve négociée - Commerce", "Statut NC", "Date début Pôle technique", "Date début Estimation", "Date début Commerce", "Statut négociation", "Commentaire / action à mener"], "rows": [], "sources": {"Apporteurs": ["DIRIDOLLOU - BLOT - ELICHIRY - CORMIER - GACHET - MOULIN - REGNIER", "DOUANE NANTES", "TEMSYS", "DIAC CREDIT BAIL", "COUTON VEYRAC", "VPRECLAMATION", "POLE SUD AUTOMOBILES", "VP AUTO", "CONCILIAN TOYOTA", "BUDGET GENERAL NANTES METROPOLE", "SINEQUAE", "FELIX FAURE CARRIERES SOUS POISSY", "DIAC LOCATION Hors Norme", "DG8 MOTORS BOURGOIN JALLIEU", "MULTIFLEET SOUMISSION", "SOFINCO VPauto Pro", "DVSO RENAULT", "SELARL COMMISSAIRES DE L OUEST", "VOLKSWAGEN FINANCIAL SERVICES WEB", "ACPTE STELLANTIS & YOU BUSINESS", "VO 360 EXT", "STELLANTIS & YOU BUSINESS", "ARAMISAUTO", "VENTE VOLONTAIRE DIVERS", "BMW VELIZY", "SOFINCO", "ACPTE AUTOBIZ - EASY REPRISE", "CGL", "STELLANTIS & YOU BUSINESS - CONFIE", "NISSAN PARIS MOLITOR AUTOMOBILES", "VENDRESONAUTO", "VPIMPAYE", "VOLKSWAGEN FINANCIAL SERVICES", "DIAC", "STELLANTIS & YOU BUSINESS - WEB", "ACPTE STELLANTIS BELGIQUE MEISER", "CONCILIAN VOLKSWAGEN", "AUTOMOBILES PEUGEOT SVO", "DIAC CREDIT BAIL Hors Norme", "REPRISE CIC", "VOLKSWAGEN FINANCIAL SERVICES CONTENTIEUX", "STELLANTIS BELGIQUE ANTWERPEN", "CONCILIAN", "SOGECLAIR AEROSPACE SAS", "AUDI MERIGNAC DBF", "LEASE PLAN FRANCE", "VOLKSWAGEN LECLUSE EVREUX", "EBP INFORMATIQUE", "PARCOURS ALD", "ACPTE TEMSYS", "PLEASE NR", "CREDIPAR", "ACPTE BREMANY LEASE", "ACPTE PARCOURS", "CONCILIAN FORD BANK", "RENT A CAR SALLE", "VOLKSWAGEN FRANCE RC", "ARVAL SAS MOTORTRADE", "AUDI BORDEAUX DBF", "AUTOBIZ - EASY REPRISE", "DIAC Hors Norme", "NISSAN WEST EUROPE", "ACPTE - MARY AUTOMOBILES ROUEN", "ACPTE AUTOBIZ SOL", "GARAGE LEMONNIER", "LOCANOR", "TEMPARC*NR", "ACPTE STELLANTIS BELGIQUE DROGENBOS", "MERCEDES STARS NAMUR", "NISSAN WEST EUROPE WEB", "ACPTE STELLANTIS & YOU LYON", "ACPTE LESPACE H HAGUENAU", "FONCIA TOULON", "SERVICE PLUS", "LNG NISSAN SOUFFELWEYERSHEIM", "PLEASE", "AUTOMOBILES PEUGEOT SVO SALLE", "CARPOLE ROUSSEAU ST OUEN", "ACPTE - JFC LE HAVRE", "ACPTE - TUPPIN MARY AUTOMOBILES ABBEVILLE", "ACPTE STELLANTIS & YOU PARIS SUD MALAKOFF", "JC CONCEPT", "ACPTE STELLANTIS & YOU MARSEILLE", "ALPHABET France B2C", "PEUGEOT WEYNANTS", "OPEL PONTIVY AUTOMOBILES", "ACPTE - JFC EVREUX", "ACPTE STELLANTIS & YOU TOULOUSE", "CHAUMEREUIL STEPHANE", "PREMIUM CARS 76", "MERCEDES LIEGE KALSCHEUER", "HYUNDAI OCF AUTOMOBILES VILLENEUVE ST GEORGES", "CREDIT MUTUEL LEASING STRASBOURG", "CARIZY", "ACPTE STELLANTIS & YOU LILLE PGT", "ACPTE - MARY AUTOMOBILES COMMERCES ET SERVICES", "RECORD PORTES AUTOMATIQUES", "ACPTE - RENAULT FONTENAY LE COMTE", "ACPTE STELLANTIS & YOU BORDEAUX", "JFC ROUEN", "ACPTE STELLANTIS & YOU PARIS EST", "CONCILIAN TEMSYS", "SOMELAC HERTZ GRAND OUEST", "Clara Automobiles CHATEAUROUX", "ALPHABET France B2B", "ROCADE SUD AUTOMOBILES", "COMPTOIR FIDUCIAIRE DE PARIS", "VPGARANTIE OPTIMVO", "HERVE THERMIQUE", "FORD GHV EVREUX", "ACPTE - TUPPIN MARY AUTOMOBILES AMIENS", "ACPTE STELLANTIS & YOU PARIS SUD VELIZY", "TUPPIN MARY AUTOMOBILES SAINT QUENTIN", "ACPTE - MARY AUTOMOBILES LISIEUX", "ACPTE STELLANTIS BELGIQUE ANTWERPEN", "SAINT BARTHELEMY AUTOMOBILES", "SERVICE PLUS - SALLE", "GRIM SUD OUEST", "ACPTE Claris automobiles DREUX", "ACPTE Claro Automobiles RENNES - LAVAL", "MARY AUTOMOBILES GRANVILLE", "CAR CENTER SERVICES", "VPGARANTIE STELLANTIS", "LEASE PLAN NR", "ACPTE STELLANTIS BELGIQUE MECHELEN", "SERVICE PLUS - NR", "EUROPAUTO CALAIS", "TITI FLORIS", "Clara Automobiles ST NAZAIRE", "ACPTE - RENAULT LA ROCHELLE", "REGUINY AUTO", "VPAUTO BELGIUM", "ACPTE -  JFC ROUEN", "BCA VEHIPOSTE", "ACPTE STELLANTIS & YOU NORMANDIE", "VOLKSWAGEN LECLUSE DREUX", "ACPTE STELLANTIS & YOU RENNES", "FONCIA CIMES DE SAVOIE", "GALIVEL", "Clara Automobiles GUERET", "ACPTE STELLANTIS & YOU AMIENS", "ACTIV AUTOMOBILES RENNES", "PEUGEOT MACARD VILLENEUVE SUR LOT", "PEUGEOT MACARD AGEN", "GROUPE MJ2P - CITROEN RENAULT", "GARAGE BASCLE CYRIL - AGENT RENAULT SERVICES", "2 B AUTOS", "Clara Automobile LA ROCHE SUR YON", "ACPTE Clara Automobiles LA BAULE", "ACPTE - RENAULT NIORT", "ACPTE AUTOMOBILES PEUGEOT SVO SALLE", "MAIRIE DE VERTOU", "JFC DEAUVILLE", "ACPTE - TUPPIN MARY AUTOMOBILES SAINT QUENTIN", "ACPTE - DISTRIBUTION AUTOMOBILE CALVADOS - DEAUVILLE", "ACPTE FIAT GEX", "MINI MONTPELLIER GRIM PASSION", "LOGIC AUTOMOBILES - SAINT QUENTIN", "EUROP'AUTO CALAIS -  V.K.MOTORS", "CONTINENTAL AUTOMOBILES ROUEN", "ACPTE STELLANTIS & YOU MONTIGNY", "BCA VEHIPOSTE- VO FONCTION", "ARKEA FINANCEMENTS ET SERVICES", "MARY AUTOMOBILES CHERBOURG", "TUPPIN MARY AUTOMOBILES BERCK", "GARAGE VENET", "ACPTE - MARY AUTOMOBILES ST LO", "ACPTE Clara Automobiles PERIGUEUX", "ACPTE - MARY AUTOMOBILES CHERBOURG", "JFC LE HAVRE", "ACPTE Claris Automobiles LA ROCHE SUR YON", "FIAT FLA ANNEMASSE", "SIXT SAS NR", "ACPTE - MARY AUTOMOBILES CAEN", "ACTIV AUTOMOBILES LA MOTHE ACHARD 85", "ACPTE MARY AUTOMOBILES COMMERCES ET SERVICES-FALAISE", "ACPTE - LOGIC AUTOMOBILES  - LONGUEAU", "ACPTE Clara Automobiles BERGERAC", "PEUGEOT LACHEVRE", "ACPTE - MARY AUTOMOBILES LE HAVRE", "CARMOVE", "ACPTE- MARY AUTOMOBILES GRANVILLE", "ACPTE Claris Automobiles ROYAN - SAINTES", "MARY AUTOMOBILES COMMERCES ET SERVICES", "ACPTE Clara Automobiles GUERET", "MARY AUTOMOBILES ROUEN", "ACPTE - TUPPIN MARY AUTOMOBILES BERCK", "TRENVOUEZ", "TUPPIN MARY AUTOMOBILES NOYON", "MARY AUTOMOBILES BAYEUX", "ACPTE - RENAULT ANGOULEME", "REPRISE AGILAUTO", "VPGARANTIE", "ACPTE - TUPPIN MARY AUTOMOBILES TERGNIER", "ACPTE - LOGIC AUTOMOBILES - ABBEVILLE", "ACPTE Clara Automobiles FONTENAY LE COMTE", "STELLANTIS & YOU LILLE CITROEN", "STELLANTIS & YOU LILLE PGT", "ETPO SA", "STELLANTIS & YOU BORDEAUX", "ACPTE STELLANTIS & YOU LILLE CITROEN", "ACPTE FIAT STRADA VOIRON", "ACPTE Clara Automobiles ST NAZAIRE", "STELLANTIS BELGIQUE MECHELEN", "Claris Automobiles GUERET", "ACPTE Clara Automobile LA ROCHE SUR YON", "ACPTE STELLANTIS & YOU NANTES", "AUTOMOBILES A FRANCOIS", "TERIDEAL SEGEX MATERIELS", "ACPTE STELLANTIS & YOU TOURS", "COTTEN AUTOS QUESTEMBERT", "ACPTE STELLANTIS AND YOU SPOTICAR -  VITROLLES", "ACPTE STELLANTIS & YOU ON LINE", "AUDI ARCACHON /LA TESTE  DBF", "ACPTE - MARY TUPPIN AGENCES HESDIN", "TUPPIN MARY AUTOMOBILES TERGNIER", "STELLANTIS & YOU LYON", "ACPTE Clara Automobiles REDON", "POMONA TERRE AZUR SAVOIE", "ACPTE Clara Automobiles LES SABLES D'OLONNE", "PEUGEOT ICAR ST CHAMOND", "GROUPE MJ2P - PEUGEOT DISTINXION", "DISTRIBUTION AUTOMOBILE CALVADOS - DEAUVILLE", "ACPTE Clara Automobiles SAINTES - ST JEAN D'ANGELY", "RENAULT NIORT", "RENAULT LA ROCHELLE", "FIAT ALFA GGA VICHY", "ACPTE Claris Automobiles GUERET", "ACPTE STELLANTIS AND YOU SPOTICAR -  CASTELNAU", "ACPTE - AISNE OISE AUTOMOBILES - DIEPPE", "Claro Automobiles ORVAULT - REZE - ST NAZAIRE - LA BAULE", "STELLANTIS & YOU TOULOUSE", "FONCIA DES LACS", "ACPTE Claris Autombiles CHALLANS", "AUDI LA ROCHELLE CAR", "ACPTE - RENAULT SAINTES", "RENAULT SAINTES", "VPGARANTIE VW DBF", "MARY TUPPIN AGENCES HESDIN", "STELLANTIS & YOU NANTES", "FDG GROUP", "FONCIA AD IMMOBILIER", "TUPPIN MARY AUTOMOBILES ABBEVILLE", "SOCIETE DE REPARATION D'AUTOMOBILES DE NOGENT", "TUPPIN MARY AUTOMOBILES AMIENS", "Claris Automobiles ROCHEFORT - ST JEAN D'ANGELY", "STELLANTIS MOTOR VILLAGE BRUSSELS", "Clara Automobiles NOGENT LE ROTROU - LA FERTE BERNARD", "ACPTE - LOGIC AUTOMOBILES - JAUX", "MARY AUTOMOBILES DEAUVILLE", "SECURITIFLEET NR", "CITROEN JVM AUTO AGEN", "MERCEDES VERVIERS KALSCHEUER", "M.P.A Garage de la Rade", "OLLANDINI LOCATION VOITURES ET CAMIONS", "REPRISE BPCE CAR LEASE", "KENTY", "CAR AVENUE BEYNE HEUSAY", "AUTO GIRONDE SERVICE", "MERCEDES STARS MARCHE", "EUROPAUTO DUNKERQUE - H. MOTORS", "EUROPAUTO DUNKERQUE - V. MOTORS", "AUDI VALODIS PONTOISE", "STELLANTIS & YOU RENNES", "STELLANTIS AND YOU SPOTICAR -  VITROLLES", "ACPTE - LOGIC AUTOMOBILES - SAINT QUENTIN", "STELLANTIS AND YOU SPOTICAR -  CASTELNAU", "AUTOBIZ SOL", "VENUS", "JUPITER", "SATURNE", "NEPTUNE", "MERCURE", "LIXXBAIL", "LOCATOUR", "ACPTE Clara Automobiles NOGENT LE ROTROU - LA FERTE BERNARD", "HERTZ FRANCE SAS", "LOCATOUR NR", "ACPTE STELLANTIS & YOU PARIS OUEST", "ACPTE Claro Autombiles CHOLET - BRESSUIRE", "ALTITUDE INFRASTRUCTURE EXPLOITATION", "ALTITUDE INFRASTRUCTURE CONSTRUCTION", "GIE AXA", "SECURITIFLEET WEB EXCLUSIVE", "OPEL SOCOLOC TRELISSAC", "ACPTE - GARAGE LEMONNIER", "ACPTE Clara Automobiles LA ROCHELLE", "Clara Automobiles LA ROCHELLE", "ACPTE Claris Automobiles LES SABLES D'OLONNE", "MARY AUTOMOBILES CAEN", "Clara Automobiles COGNAC", "MARY AUTOMOBILES LE HAVRE", "Claris Automobiles ROYAN - SAINTES", "STELLANTIS & YOU MARSEILLE", "REPRISE DENKAVIT FRANCE", "AUTO 44 EUROPCAR", "Clara Automobiles SAINTES - ST JEAN D'ANGELY", "JFC EVREUX", "Clara Automobiles ST JEAN D'ANGELY", "OPEL BANK", "Clara Automobiles LA BAULE", "COLIS N CO", "RENAULT FONTENAY LE COMTE", "CONCILIAN BREMANY LEASE", "ACPTE - MARY AUTOMOBILES VIRE", "FONCIA BOUVET BONNAMOUR", "ACTIV AUTOMOBILES", "ACPTE-TUPPIN MARY AUTOMOBILES NOYON", "Garage DELECRIN", "RENAULT ROCHEFORT", "LOGIC AUTOMOBILES - JAUX", "Claro Automobiles DREUX", "ACPTE Claro Automobiles ANGERS", "MERCEDES BENZ FRANCE", "STELLANTIS BELGIQUE DROGENBOS", "COTIERE LOCATION", "Claro Automobiles RENNES - LAVAL", "ACPTE JFC ROUEN-MG", "CONCILIAN PARCOURS", "ACPTE Claro Automobiles ORVAULT - REZE - ST NAZAIRE - LA BAULE", "Clara Automobiles ROYAN", "GARAGE MODERNE", "SOCIETE AUTO FLOCEENNE", "Claro Automobiles LRSY - LSO - CHALLANS", "HYUNDAI FRANCE WEB", "MATADOM", "DIAC LOCATION", "AISNE OISE AUTOMOBILES - DIEPPE", "ACPTE Claris Automobiles CHARTRES", "ACPTE FIAT PNA ANNECY", "TERIDEAL HAUTS DE FRANCE", "REPRISE CREDIT MUTUEL", "PGH AUTOS", "STELLANTIS & YOU TOURS", "STELLANTIS & YOU ROUEN", "STELLANTIS & YOU PARIS NORD", "PRIOUR SARL", "SYNERGIHP", "MARY AUTOMOBILES ST LO", "SOCIETE ALENCONNAISE DE DISTRIBUTION AUTOMOBILE-ARGENTAN", "STELLANTIS & YOU PARIS SUD VELIZY", "ACPTE Clara Automobiles COGNAC", "STELLANTIS AND YOU SPOTICAR - CARRIERES-SOUS-POISSY", "LOGIC AUTOMOBILES - LONGUEAU", "ACPTE STELLANTIS & YOU PARIS NORD", "Claris Automobiles LA ROCHELLE", "SCUTUM", "SAUVEGARDE 56", "Clara Automobiles REDON", "STELLANTIS & YOU PARIS SUD PORTE DE VERSAILLES", "FIAT PNA ANNECY", "TITI LOC", "FORD MUSTIERE ST HERBLAIN", "SOCIETE ALENCONNAISE DE DISTRIBUTION AUTOMOBILE", "SAVAB FORD BEZIERS", "ARMORIC AUTOS", "IMPERIAL CARS 78", "Claris Automobiles CHARTRES", "BMW ALPHABET", "BMW FINANCE AIM", "HERTZ FRANCE SAS NR", "D3 NORMANDY", "ACPTE - MARY TUPPIN AGENCES FRUGES / ST POL SUR TERNOISE", "ACPTE STELLANTIS AND YOU SPOTICAR - CORBAS", "IVT SECURITY", "ACPTE Clara Automobiles ROYAN", "FINANCE AUTO 92", "POMONA TERRE AZUR RUNGIS", "SOMELAC OPTI FLOTTE CONSEIL", "AUTOMOBILES PEUGEOT SVO WEB", "LESPACE H STRASBOURG", "JFC CAEN", "ATLANTIQUE LONGUE DUREE", "ACPTE STELLANTIS & YOU PARIS SUD MASSY", "OPEL FRANCE", "GIE EVEN DISTRIBUTION", "STERNE CARE", "POLYEXPERT", "OPEL CELTIC AUTO LANESTER", "STELLANTIS & YOU AMIENS", "ACPTE Claris Automobiles LA ROCHELLE", "FIAT GEX", "FONCIA LYON", "ACPTE  MG MOTOR STRASBOURG", "FORD GT AUTOS LE MANS", "SPORTY HONDA", "HYUNDAI BAYARD PARIS", "Claro Automobiles ANGERS", "STELLANTIS BELGIQUE MEISER", "Clara Automobiles PERIGUEUX", "STELLANTIS & YOU MONTIGNY", "BARKENE SURETE", "GAIA  GESTION D APPROVISIONNEMENTS INDUSTRIELS AUTOMOBILES", "ACPTE - MARY AUTOMOBILES COUTANCES", "LEASYS", "Claris Automobiles LA ROCHE SUR YON", "MULTIFLEET PRO EXCLUSIF", "Clara Automobiles LE MANS", "ACPTE MG MOTOR HAGUENAU", "FONCIA TERRES DE PROVENCE", "LCF RESEAUX", "GARAGE DE L’ETOILE", "IGOVILLE AUTO", "LOGIC AUTOMOBILES - ABBEVILLE", "VPN FRANCE", "STELLANTIS & YOU PARIS EST", "MAIRIE DE ST HERBLAIN", "FCA FRANCE", "ACPTE - MARY AUTOMOBILES DEAUVILLE", "AISNE OISE AUTOMOBILES - VERNON", "ACPTE - AISNE OISE AUTOMOBILES - VERNON", "ACPTE - LOGIC AUTOMOBILES - DIEPPE", "GARAGE LANDAIS", "VENTE VOLONTAIRE ROUEN", "MARY AUTOMOBILES COUTANCES", "GERMAN AUTOMOBILES", "LANDERNEAU AUTOMOBILES", "RENAULT ANGOULEME", "BUDGET GENERAL VILLE DE NANTES", "BUDGET ANNEXE NANTES METROPOLE", "MATMUT LOCATION VEHICULES", "MECA SPORT", "ACPTE FIAT ALFA GGA VICHY", "AEDS", "ALLIANCE AUTOMOTIVE FRANCE", "ALLIANCE AUTOMOTIVE PARIS NORD CENTRE", "ALLIANCE AUTOMOTIVE TRADING GROUP", "AUTO FORMATION QUALITE", "GENEVE OCCASION", "PRECISIUM GROUPE", "TPA", "COMPTOIR AUTO LEVALLOISIEN", "COMPTOIR DU FREIN", "FINANCIERE PRECISIUM", "HIOT", "LE HELLO", "STAR G", "FCA MOTOR VILLAGE BOULOGNE", "STELLANTIS & YOU PARIS SUD MALAKOFF PEUGEOT", "FONCIA SAINT LOUIS", "ACPTE - RENAULT PARTHENAY", "BORNE ET DELAUNAY", "ALSTEF MOBILE ROBOTICS", "GARAGE J  ROBILLARD SAS", "POMONA PASSION FROID PACA", "VOLKSWAGEN FRANCE WEB", "STELLANTIS & YOU PARIS OUEST", "ASP OUEST 44", "OFFICE PUBLIC DE L HABITAT DU MORBIHAN", "GARAGE DE L'AVENIR", "VENTE VOLONTAIRE OPTIM VO", "LA BANQUE POSTALE LEASING", "Clara Automobiles CHALLANS", "ACHILLE BERTRAND", "SECURITIFLEET SAS", "MONACO  AUTO LOCATION", "STELLANTIS & YOU PARIS SUD MASSY", "Claro Autombiles CHOLET - BRESSUIRE", "ACPTE - GARAGE J  ROBILLARD SAS", "Claris Automobiles LES SABLES D'OLONNE", "COURTOIS HONDA CHAMBOURCY", "ACPTE Ok Occasion Sausheim", "ALPIMO", "RECUP AUTO", "ACPTE Claris Automobiles ROCHEFORT - ST JEAN D'ANGELY", "AUTO 44 EUROPCAR NR", "PERLE UNION", "PN PARTICIPATIONS", "MG MOTOR STRASBOURG", "Claris Autombiles CHALLANS", "MARY AUTOMOBILES LISIEUX", "ACPTE Claro Automobiles LRSY - LSO - CHALLANS", "MARY AUTOMOBILES COMMERCES ET SERVICES-FALAISE", "VOLKSWAGEN FRANCE RC NON ROULANT", "Claris automobiles DREUX", "POMONA SIEGE", "POMONA PASSION FROID BOURGOGNE FRANCHE COMTE", "JFC ROUEN-HYUNDAI / JLR", "HYUNDAI CAPITAL FRANCE", "HYUNDAI CAPITAL FRANCE WEB", "REGION PAYS DE LA LOIRE", "POMONA TERRE AZUR PYRENEES ATLANTIQUES", "BREMANY LEASE", "STERNE TCS", "BELLANGER", "GARAGE DE LA POSTE", "SYNERCIEL", "L'ATELIER 328", "TOYOTA FRANCE", "ARES", "POMONA PASSION FROID NORD NORMANDIE", "PARCOURS ALD NR", "Garage LESIEUR", "THULEAU BY RS", "STERNE BIP BIP COURSES", "BMW FRANCE AIM", "ACPTE STELLANTIS & YOU PARIS SUD PORTE DE VERSAILLES", "YP AUTO SAS", "VPGARANTIE AUDI DBF", "AUTOCAN", "ACPTE Clara Automobiles CHATEAUROUX", "LAITA", "COUTON JAMAULT HIRN", "ACSEA", "ACPTE OK Occasion Haguenau", "MARY AUTOMOBILES SUD MANCHE", "Ok Occasion Sausheim", "PEUGEOT FAHY FRANCHEVILLE", "COGNET SAS", "FONCIA PARIS RIVE GAUCHE", "FONCIA SENART GATINAIS", "DISTRIBUTION AUTOMOBILE CALVADOS - LISIEUX", "NANTES METROPOLE", "GHISTELINCK LILLE", "MERCEDES STARS LIBRAMONT", "KHEOPS SECURITE", "GIE LAITA", "FONCIA PARIS RIVE DROITE", "Clara Automobiles TONNAY CHARENTE", "MARY AUTOMOBILES COMMERCES ET SERVICES-HONFLEUR", "POMONA TERRE AZUR BOURGOGNE FRANCHE COMTE", "VP HOLDING", "VPTRANS SARL", "CHARLES MARTIN", "JADE AUTOMOBILE SERVICE", "MOVIVOLT", "ACPTE OK Occasion Strasbourg", "SANEF", "NORMANDIE ACCESSOIRES", "ALLIANCE AUTOMOTIVE PLATEFORME PREFERENCE", "ALLIANCE AUTOMOTIVE OUEST", "TODD", "SAINT AMAND SERVICE FRANCE", "BIOPATH UNILABS", "GIE GROUPE EVEN", "SARL GARAGE THOMAS", "PERROT - FISCHER - PEGOURIER - NIFOU", "DIAC LOCATION MOBILIZE", "LYRECO", "FIAT TRELISSAC", "DIRECT MINIBUS EMERAUDE", "LOGIC AUTOMOBILES - DIEPPE", "ALTEMA SUD", "METROHM FRANCE", "VWR INTERNATIONAL", "STELLANTIS & YOU ON LINE", "GASTRONOMIE SERVICE", "TRANSITION (ANDREASSEN)", "Clara Automobiles LES SABLES D'OLONNE", "FONCIA MONT BLANC", "AT PRESTIGE", "ACPTE STELLANTIS & YOU GMBH - HAMBURG", "ACPTE STELLANTIS & YOU GMBH - RENT", "ACPTE STELLANTIS & YOU GMBH - RHEIN MAIN", "ACPTE STELLANTIS & YOU GMBH - WEST", "SO BREIZH", "MARY AUTOMOBILES COMMERCES ET SERVICES-CABOURG", "STELLANTIS AND YOU SPOTICAR - CORBAS", "FEAL", "COPY CONCEPT", "C PRO OUEST", "KOESIO OUEST", "LORI SI", "DESK BRETAGNE", "OPEL FRANCE - SOUMISSION", "ACPTE OK Occasion Thionville", "ESSET", "CARELEC", "VO 360", "POMONA EPISAVEURS LANGUEDOC PROVENCE MEDITERRANEE", "ARGEL SUD EST", "VOLKSWAGEN FRANCE", "FIAT ALFA GGA AUBIERE", "CARSAT NORMANDIE", "FIAT STRADA VOIRON", "COTE D'ARGENT AUTOS", "MARY AUTOMOBILES VIRE", "HYUNDAI ORLEANS - ORLEANS MOTORS", "RENAULT COURT LORIENT", "OK Occasion Haguenau", "VIGILEC SECURITE", "BREHAN AUTOMOBILES", "ACADYSS", "MG MOTOR HAGUENAU", "DELICE ET CREATION DISTRIBUTION", "BAYI EVREUX AUTOMOBILES", "OK Occasion Thionville", "GROUPE PERLE DU NORD", "POMONA PASSION FROID EST ET LUXFRAIS", "STARTERRE OPTIM", "OPTIAUTO", "Claris Automobiles CHOLET", "VK ELECTRONIC", "FORD CREDIT BANK", "STERNULA", "OK Occasion Strasbourg", "STERNE NOVEA", "Clara Automobiles BERGERAC", "AUVERGNE AUTO TEXTYLE", "AUTO CONCEPT AUDI ROUEN"], "Responsable commercial": ["Pallencher Vincent", "Roussel Christian", "Le Boulba Jeremy", "Payen Fabienne"], "Type de NC": ["Différence kilométrique", "Mécanique", "Esthétique", "Version / Finition"], "Statut NC": ["En cours traitement - Pôle technique", "En cours de traitement - estimation", "En cours de négociation - commerce", "Cloturée"], "Statut négociation": ["Accepté", "Refusée", "En attente", "Non applicable"]}};
-const euroCols = ['Coûts évalués- Pôle technique','Décote évaluée - Estimation','Réserve initiale','Nouvelle réserve proposée après décote','Reserve négociée - Commerce'];
-const dateCols = ['Date NC','Date début Pôle technique','Date début Estimation','Date début Commerce'];
-const longCols = ['Description de la NC','Commentaire / action à mener'];
-let data = JSON.parse(JSON.stringify(INITIAL_DATA));
+
 const GITHUB_USER = 'Fgancarz7756';
 const GITHUB_REPO = 'suivi-nc';
 const GITHUB_FILE = 'suivi_nc_data.json';
-const GITHUB_API  = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+const GITHUB_API  = 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/contents/' + GITHUB_FILE;
 let GITHUB_TOKEN  = localStorage.getItem('gh_token') || '';
 let githubSha     = null;
+let saveTimer     = null;
+
+function showStatus(msg) {
+  let el = document.getElementById('ghStatus');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'ghStatus';
+    el.style.cssText = 'position:fixed;bottom:18px;right:24px;background:#222;color:white;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3);';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.textContent = ''; }, 4000);
+}
 
 async function getToken() {
   if (GITHUB_TOKEN) return GITHUB_TOKEN;
-  const t = prompt('Entrez votre token GitHub (ghp_...) :');
-  if (t) { GITHUB_TOKEN = t.trim(); localStorage.setItem('gh_token', GITHUB_TOKEN); }
+  const t = prompt('Entrez votre token GitHub (ghp_...) pour activer la sauvegarde automatique :');
+  if (t && t.trim()) {
+    GITHUB_TOKEN = t.trim();
+    localStorage.setItem('gh_token', GITHUB_TOKEN);
+  }
   return GITHUB_TOKEN;
 }
 
 async function loadFromGithub() {
+  if (!GITHUB_TOKEN) return;
   try {
     const res = await fetch(GITHUB_API, { headers: { 'Authorization': 'token ' + GITHUB_TOKEN } });
-    if (res.status === 404) return; // fichier pas encore créé
+    if (res.status === 404) { showStatus('ℹ️ Aucune donnée sauvegardée sur GitHub'); return; }
     if (!res.ok) return;
     const json = await res.json();
     githubSha = json.sha;
@@ -387,125 +229,27 @@ async function loadFromGithub() {
 async function saveToGithub() {
   const token = await getToken();
   if (!token) return;
-  showStatus('⏳ Sauvegarde en cours...');
-  try {
-    const body = { message: 'Mise à jour suivi NC', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), };
-    if (githubSha) body.sha = githubSha;
-    const res = await fetch(GITHUB_API, { method: 'PUT', headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
-    const json = await res.json();
-    githubSha = json.content.sha;
-    showStatus('✅ Sauvegardé sur GitHub');
-  } catch(e) { showStatus('❌ Erreur : ' + e.message); }
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async function() {
+    showStatus('⏳ Sauvegarde en cours...');
+    try {
+      const body = { message: 'Mise à jour suivi NC', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
+      if (githubSha) body.sha = githubSha;
+      const res = await fetch(GITHUB_API, {
+        method: 'PUT',
+        headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.message); }
+      const json = await res.json();
+      githubSha = json.content.sha;
+      showStatus('✅ Sauvegardé sur GitHub');
+    } catch(e) { showStatus('❌ Erreur sauvegarde : ' + e.message); }
+  }, 1500);
 }
 
-function showStatus(msg) {
-  let el = document.getElementById('ghStatus');
-  if (!el) { el = document.createElement('div'); el.id = 'ghStatus'; el.style.cssText = 'position:fixed;bottom:18px;right:24px;background:#222;color:white;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;'; document.body.appendChild(el); }
-  el.textContent = msg;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.textContent = '', 4000);
-}
+function saveData() { saveToGithub(); renderAll(); }
 
-function saveData() { renderAll(); saveToGithub(); }
-function showPage(id, btn) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAll(); }
-function todayISO() { return new Date().toISOString().slice(0,10); }
-function parseDate(v) { if(!v) return null; const d=new Date(v); return isNaN(d) ? null : d; }
-function daysBetween(d) { const dt=parseDate(d); if(!dt) return null; return Math.floor((new Date()-dt)/(1000*60*60*24)); }
-function ageing(row, step) {
-  let d = row[step] || row['Date NC'];
-  return daysBetween(d);
-}
-function avg(nums) { nums=nums.filter(n=>n!==null && !isNaN(n)); return nums.length ? Math.round(nums.reduce((a,b)=>a+b,0)/nums.length) : 0; }
-function statusIncludes(row, txt) { return (row['Statut NC']||'').toLowerCase().includes(txt.toLowerCase()); }
-function isCurrent(row) { return !statusIncludes(row,'clot') && !statusIncludes(row,'clôt'); }
-function previousMonthRange() { const now=new Date(); const y=now.getFullYear(), m=now.getMonth(); return [new Date(y,m-1,1), new Date(y,m,1)]; }
-function renderDashboard() {
-  const rows=data.rows||[];
-  const pole=rows.filter(r=>statusIncludes(r,'pôle technique'));
-  const est=rows.filter(r=>statusIncludes(r,'estimation'));
-  const [pmStart, pmEnd]=previousMonthRange();
-  const prev=rows.filter(r=>{let d=parseDate(r['Date NC']); return d && d>=pmStart && d<pmEnd && (statusIncludes(r,'clot')||statusIncludes(r,'clôt'));});
-  const current=rows.filter(isCurrent);
-  const kpis=[
-    ['NC en traitement Pôle technique', pole.length, 'Ageing moyen : '+avg(pole.map(r=>ageing(r,'Date début Pôle technique')))+' j'],
-    ['NC en traitement Estimation', est.length, 'Ageing moyen : '+avg(est.map(r=>ageing(r,'Date début Estimation')))+' j'],
-    ['NC traitées le mois précédent', prev.length, 'Clôturées sur la base de la date NC'],
-    ['NC en cours', current.length, 'Tous statuts non clôturés']
-  ];
-  document.getElementById('kpiGrid').innerHTML=kpis.map(k=>`<div class="card kpi"><div class="label">${k[0]}</div><div class="num">${k[1]}</div><div class="ageing">${k[2]}</div></div>`).join('');
-  renderStatsApporteur(rows); renderStatsType(rows);
-}
-function renderStatsApporteur(rows) {
-  const map={};
-  rows.forEach(r=>{ const a=r['Apporteur']||'Non renseigné'; map[a]??={total:0, accepte:0, refusee:0, types:{}}; map[a].total++; if((r['Statut négociation']||'').toLowerCase().startsWith('accept')) map[a].accepte++; if((r['Statut négociation']||'').toLowerCase().startsWith('refus')) map[a].refusee++; const t=r['Type de NC']||'Non renseigné'; map[a].types[t]=(map[a].types[t]||0)+1; });
-  let rowsHtml=Object.entries(map).sort((a,b)=>b[1].total-a[1].total).map(([a,v])=>`<tr><td>${escapeHtml(a)}</td><td>${v.total}</td><td>${Object.entries(v.types).sort((x,y)=>y[1]-x[1]).map(([t,n])=>escapeHtml(t)+' ('+n+')').join('<br>')}</td><td>${v.accepte}</td><td>${v.refusee}</td></tr>`).join('');
-  document.getElementById('statsApporteur').innerHTML='<thead><tr><th>Apporteur</th><th>Nb NC</th><th>Types de NC</th><th>Acceptées</th><th>Refusées</th></tr></thead><tbody>'+rowsHtml+'</tbody>';
-}
-function renderStatsType(rows) {
-  const map={}; rows.forEach(r=>{ const t=r['Type de NC']||'Non renseigné'; map[t]=(map[t]||0)+1; });
-  let rowsHtml=Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<tr><td>${escapeHtml(t)}</td><td>${n}</td></tr>`).join('');
-  document.getElementById('statsType').innerHTML='<thead><tr><th>Type de NC</th><th>Nb NC</th></tr></thead><tbody>'+rowsHtml+'</tbody>';
-}
-function escapeHtml(s) { return String(s??'').replace(/[&<>'"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-function optionsFor(col, selected) {
-  let key=col; if(col==='Apporteur') key='Apporteurs';
-  const vals=data.sources[key]||[]; return '<option value=""></option>'+vals.map(v=>`<option ${v===selected?'selected':''} value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
-}
-function datalistFor(key, id) {
-  const vals=data.sources[key]||[];
-  return `<datalist id="${id}">`+vals.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('')+'</datalist>';
-}
-function inputFor(rowIdx, col, val) {
-  const safe=escapeHtml(val||'');
-  if(col==='Apporteur') {
-    const listId='apporteurList_'+rowIdx;
-    return `<input list="${listId}" value="${safe}" placeholder="Commencez à saisir l'apporteur..." oninput="updateCell(${rowIdx},'Apporteur',this.value)">${datalistFor('Apporteurs',listId)}`;
-  }
-  if(['Responsable commercial','Type de NC','Statut NC','Statut négociation'].includes(col)) return `<select onchange="updateCell(${rowIdx},'${escapeHtml(col)}',this.value)">${optionsFor(col,val)}</select>`;
-  if(dateCols.includes(col)) return `<input type="date" value="${safe}" onchange="updateCell(${rowIdx},'${escapeHtml(col)}',this.value)">`;
-  if(euroCols.includes(col)) return `<input type="number" step="0.01" value="${safe}" onchange="updateCell(${rowIdx},'${escapeHtml(col)}',this.value)">`;
-  if(longCols.includes(col)) return `<textarea onchange="updateCell(${rowIdx},'${escapeHtml(col)}',this.value)">${safe}</textarea>`;
-  return `<input value="${safe}" onchange="updateCell(${rowIdx},'${escapeHtml(col)}',this.value)">`;
-}
-function filteredRows() {
-  const st=document.getElementById('filterStatus')?.value||'', ap=document.getElementById('filterApporteur')?.value||'', txt=(document.getElementById('filterText')?.value||'').toLowerCase();
-  return data.rows.map((r,i)=>[r,i]).filter(([r])=>(!st||r['Statut NC']===st)&&(!ap||r['Apporteur']===ap)&&(!txt||String(r['Numéro de dossier']||'').toLowerCase().includes(txt)||String(r['Immatriculation']||'').toLowerCase().includes(txt)));
-}
-function renderTreatment() {
-  populateFilters();
-  const trs=filteredRows().map(([r,i])=>'<tr>'+data.headers.map(c=>`<td>${inputFor(i,c,r[c])}</td>`).join('')+`<td><button class="danger" onclick="deleteRow(${i})">Suppr.</button></td></tr>`).join('');
-  document.getElementById('treatmentTable').innerHTML='<thead><tr>'+data.headers.map(h=>'<th>'+escapeHtml(h)+'</th>').join('')+'<th>Action</th></tr></thead><tbody>'+trs+'</tbody>';
-}
-function populateFilters() {
-  const fs=document.getElementById('filterStatus'), fa=document.getElementById('filterApporteur'), fal=document.getElementById('filterApporteurList'); if(!fs||!fa) return;
-  const curS=fs.value;
-  fs.innerHTML='<option value="">Tous</option>'+(data.sources['Statut NC']||[]).map(v=>`<option ${v===curS?'selected':''}>${escapeHtml(v)}</option>`).join('');
-  if(fal) fal.innerHTML=(data.sources['Apporteurs']||[]).map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
-}
-function updateCell(i,col,val) { data.rows[i][col]=val; renderDashboard(); }
-function addRow() { const r={}; data.headers.forEach(h=>r[h]=''); r['Date NC']=todayISO(); r['Statut NC']=(data.sources['Statut NC']||[''])[0]||''; data.rows.unshift(r); saveData(); }
-function deleteRow(i) { if(confirm('Supprimer cette ligne ?')) { data.rows.splice(i,1); saveData(); } }
-function renderSources() {
- const keys=['Apporteurs','Responsable commercial','Type de NC','Statut NC','Statut négociation'];
- document.getElementById('sourceEditors').innerHTML=keys.map(k=>`<div><label>${escapeHtml(k)}</label><textarea id="src_${k.replace(/[^a-zA-Z0-9]/g,'_')}">${escapeHtml((data.sources[k]||[]).join('\n'))}</textarea></div>`).join('');
-}
-function saveSources() { ['Apporteurs','Responsable commercial','Type de NC','Statut NC','Statut négociation'].forEach(k=>{ const id='src_'+k.replace(/[^a-zA-Z0-9]/g,'_'); data.sources[k]=document.getElementById(id).value.split('\n').map(x=>x.trim()).filter(Boolean); }); saveData(); }
-function resetData() { if(confirm('Réinitialiser toutes les données ?')) { data=JSON.parse(JSON.stringify(INITIAL_DATA)); renderAll(); } }
-function exportJson() {
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8;'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='suivi_nc_sauvegarde.json'; a.click();
-}
-function importJson() {
-  const input=document.createElement('input'); input.type='file'; input.accept='.json';
-  input.onchange=e=>{
-    const file=e.target.files[0]; if(!file) return;
-    const reader=new FileReader();
-    reader.onload=ev=>{ try { data=JSON.parse(ev.target.result); renderAll(); alert('Données importées avec succès.'); } catch(err) { alert('Fichier JSON invalide.'); } };
-    reader.readAsText(file);
-  };
-  input.click();
-}
 function exportCsv() {
  const rows=[data.headers].concat(data.rows.map(r=>data.headers.map(h=>r[h]||'')));
  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
@@ -513,8 +257,7 @@ function exportCsv() {
 }
 function renderAll() { renderDashboard(); renderTreatment(); renderSources(); }
 renderAll();
-// Chargement initial depuis GitHub
-(async () => {
+(async function() {
   const token = await getToken();
   if (token) await loadFromGithub();
 })();
