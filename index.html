@@ -219,7 +219,8 @@ async function loadFromGithub() {
     if (!res.ok) return;
     const json = await res.json();
     githubSha = json.sha;
-    const decoded = JSON.parse(atob(json.content.replace(/\n/g, '')));
+    const raw = atob(json.content.replace(/\n/g, ''));
+    const decoded = JSON.parse(decodeURIComponent(raw.split('').map(function(c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join('')));
     data = decoded;
     renderAll();
     showStatus('✅ Données chargées depuis GitHub');
@@ -233,7 +234,7 @@ async function saveToGithub() {
   saveTimer = setTimeout(async function() {
     showStatus('⏳ Sauvegarde en cours...');
     try {
-      const body = { message: 'Mise à jour suivi NC', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
+      const body = { message: 'Mise a jour suivi NC', content: btoa(encodeURIComponent(JSON.stringify(data, null, 2)).replace(/%([0-9A-F]{2})/g, function(match, p1) { return String.fromCharCode('0x' + p1); })) };
       if (githubSha) body.sha = githubSha;
       const res = await fetch(GITHUB_API, {
         method: 'PUT',
