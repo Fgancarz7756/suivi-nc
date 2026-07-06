@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Défaut demmareur + FAP + Suspicion BSI",
       "Couts evalues- Pole technique": "",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1800",
       "Reserve initiale": "",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
