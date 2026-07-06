@@ -22,6 +22,26 @@
   "rows": [
     {
       "Date NC": "2026-07-06",
+      "Numero de dossier": "",
+      "Immatriculation": "",
+      "Apporteur": "",
+      "Responsable commercial": "",
+      "Type de NC": "",
+      "Description de la NC": "",
+      "Couts evalues- Pole technique": "",
+      "Decote evaluee - Estimation": "",
+      "Reserve initiale": "",
+      "Nouvelle reserve proposee apres decote": "",
+      "Reserve negociee - Commerce": "",
+      "Statut NC": "En cours traitement - Pole technique",
+      "Date debut Pole technique": "",
+      "Date debut Estimation": "",
+      "Date debut Commerce": "",
+      "Statut negociation": "",
+      "Commentaire / action a mener": ""
+    },
+    {
+      "Date NC": "2026-07-06",
       "Numero de dossier": "11428543",
       "Immatriculation": "DY-047-MG",
       "Apporteur": "PEUGEOT MACARD AGEN",
