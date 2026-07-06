@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Coupures moteur en roulant + réserve FAP",
       "Couts evalues- Pole technique": "",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1200",
       "Reserve initiale": "",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
