@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Defaut suralimentation turbo. suspiçion utilisation E85 sans boitier",
       "Couts evalues- Pole technique": "1000",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1500",
       "Reserve initiale": "5700",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
