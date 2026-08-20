@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "neiman hs",
       "Couts evalues- Pole technique": "",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "500",
       "Reserve initiale": "3050",
       "Nouvelle reserve proposee apres decote": "2300",
       "Reserve negociee - Commerce": "",
