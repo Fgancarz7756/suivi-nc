@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Perte de puissance",
       "Couts evalues- Pole technique": "600",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "600",
       "Reserve initiale": "",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
