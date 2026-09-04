@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "FAP bouché",
       "Couts evalues- Pole technique": "",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "2000",
       "Reserve initiale": "11300",
       "Nouvelle reserve proposee apres decote": "9300",
       "Reserve negociee - Commerce": "",
