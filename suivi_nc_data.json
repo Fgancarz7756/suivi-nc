@@ -30,7 +30,7 @@
       "Description de la NC": "Pb gestion moteur/ Raté allumage",
       "Couts evalues- Pole technique": "600",
       "Decote evaluee - Estimation": "600",
-      "Reserve initiale": "",
+      "Reserve initiale": "2250",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
       "Statut NC": "En cours traitement - Pole technique",
