@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Moteur hs",
       "Couts evalues- Pole technique": "1500",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1500",
       "Reserve initiale": "2050",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
