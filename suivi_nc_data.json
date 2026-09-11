@@ -272,12 +272,12 @@
       "Decote evaluee - Estimation": "550",
       "Reserve initiale": "6950",
       "Nouvelle reserve proposee apres decote": "6300",
-      "Reserve negociee - Commerce": "",
+      "Reserve negociee - Commerce": "6300",
       "Statut NC": "En cours de negociation - commerce",
       "Date debut Pole technique": "2026-08-24",
       "Date debut Estimation": "2026-09-04",
       "Date debut Commerce": "2026-09-04",
-      "Statut negociation": "En attente",
+      "Statut negociation": "Accepte",
       "Commentaire / action a mener": ""
     },
     {
