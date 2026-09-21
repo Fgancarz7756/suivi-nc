@@ -149,7 +149,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Temoin ABS/ESP",
       "Couts evalues- Pole technique": "800",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "0",
       "Reserve initiale": "2550",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
