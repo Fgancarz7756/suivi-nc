@@ -1150,7 +1150,7 @@
       "Description de la NC": "Grêle niveau 3",
       "Couts evalues- Pole technique": "",
       "Decote evaluee - Estimation": "",
-      "Reserve initiale": "",
+      "Reserve initiale": "6800",
       "Nouvelle reserve proposee apres decote": "6000",
       "Reserve negociee - Commerce": "6800",
       "Statut NC": "En cours de traitement - estimation",
