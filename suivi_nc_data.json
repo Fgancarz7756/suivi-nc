@@ -1449,7 +1449,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Fuite de gazole ou mauvais nettoyage lors du remplacement du filtre remplacé récemment.\nDéfaut P0380 : bougies de préchauffage en défaut.",
       "Couts evalues- Pole technique": "1400",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1450",
       "Reserve initiale": "8350",
       "Nouvelle reserve proposee apres decote": "6900",
       "Reserve negociee - Commerce": "6900",
