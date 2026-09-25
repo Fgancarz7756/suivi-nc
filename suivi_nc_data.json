@@ -429,7 +429,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "1 injecteur hs + capteur fap hs",
       "Couts evalues- Pole technique": "500",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "500",
       "Reserve initiale": "1500",
       "Nouvelle reserve proposee apres decote": "1000",
       "Reserve negociee - Commerce": "",
