@@ -89,7 +89,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Airbag passager hs",
       "Couts evalues- Pole technique": "900",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "900",
       "Reserve initiale": "1900",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
