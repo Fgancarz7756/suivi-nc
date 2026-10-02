@@ -169,7 +169,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "capteur de pression des gaz hs",
       "Couts evalues- Pole technique": "300",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1000",
       "Reserve initiale": "3200",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
