@@ -29,7 +29,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "Injecteurs hs",
       "Couts evalues- Pole technique": "",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "1500",
       "Reserve initiale": "3950",
       "Nouvelle reserve proposee apres decote": "2450",
       "Reserve negociee - Commerce": "",
