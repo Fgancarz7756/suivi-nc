@@ -529,7 +529,7 @@
       "Type de NC": "Mecanique",
       "Description de la NC": "BVA hs",
       "Couts evalues- Pole technique": "2000",
-      "Decote evaluee - Estimation": "",
+      "Decote evaluee - Estimation": "2000",
       "Reserve initiale": "3500",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
