@@ -30,7 +30,7 @@
       "Description de la NC": "Pb chaine",
       "Couts evalues- Pole technique": "",
       "Decote evaluee - Estimation": "",
-      "Reserve initiale": "",
+      "Reserve initiale": "5000",
       "Nouvelle reserve proposee apres decote": "",
       "Reserve negociee - Commerce": "",
       "Statut NC": "En cours traitement - Pole technique",
